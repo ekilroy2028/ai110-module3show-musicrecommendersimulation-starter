@@ -109,3 +109,6 @@ python3 recommender.py
 - Python 3.x
 - pandas
 - scikit-learn
+## Phase 4 – Stress Test Results
+
+![Phase 4 Stress Test](images/phase4_stress_test.png)
