@@ -1,70 +1,78 @@
-import pandas as pd
+import csv
+import os
 
 # ----------------------------
-# 1. Load the songs dataset
+# Load songs from CSV file
 # ----------------------------
-songs = pd.read_csv('data/songs.csv')
+def load_songs(filepath):
+    songs = []
+    with open(filepath, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            songs.append({
+                'song_id':      int(row['song_id']),
+                'title':        row['title'],
+                'artist':       row['artist'],
+                'genre':        row['genre'],
+                'mood':         row['mood'],
+                'energy':       float(row['energy']),
+                'tempo_bpm':    int(row['tempo_bpm']),
+                'danceability': float(row['danceability']),
+                'acousticness': float(row['acousticness']),
+                'duration_sec': int(row['duration_sec'])
+            })
+    return songs
+
 
 # ----------------------------
-# 2. Define user preferences
-# ----------------------------
-user_preferences = {
-    'favorite_genre': 'Pop',
-    'favorite_mood': 'Energetic',
-    'target_energy': 0.8,
-    'target_tempo_bpm': 120,
-    'target_danceability': 0.75,
-    'target_acousticness': 0.15
-}
-
-# ----------------------------
-# 3. Scoring Rule (one song)
-# Algorithm Recipe:
-#   +2.0 points for genre match
-#   +1.5 points for mood match
-#   +1.0 point for energy similarity (scaled 0.0–1.0)
-#   +0.5 points for tempo similarity (scaled 0.0–1.0)
-#   Max possible score = 5.0
+# Score a single song
+# Returns: (numeric_score, reasons_list)
+#
+# EXPERIMENT: Weight Shift
+#   Original weights: genre=2.0, mood=1.5, energy=1.0, tempo=0.5  (max=5.0)
+#   Experimental:     genre=1.0, mood=1.5, energy=2.0, tempo=0.5  (max=5.0)
+#   Change: genre halved (2.0 → 1.0), energy doubled (1.0 → 2.0)
+#   Max score remains 5.0 so math stays valid
 # ----------------------------
 def score_song(song, prefs):
     score = 0.0
+    reasons = []
 
-    # Categorical matching
+    # Genre match — HALVED from +2.0 to +1.0
     if song['genre'] == prefs['favorite_genre']:
-        score += 2.0
+        score += 1.0
+        reasons.append(f"genre match (+1.0)")
 
+    # Mood match — unchanged +1.5
     if song['mood'] == prefs['favorite_mood']:
         score += 1.5
+        reasons.append(f"mood match (+1.5)")
 
-    # Energy similarity (0.0–1.0 scale, worth up to 1.0 point)
+    # Energy similarity — DOUBLED from up to +1.0 to up to +2.0
     energy_similarity = 1 - abs(song['energy'] - prefs['target_energy']) / 1.0
-    score += energy_similarity * 1.0
+    energy_points = round(energy_similarity * 2.0, 2)
+    score += energy_points
+    reasons.append(f"energy similarity (+{energy_points})")
 
-    # Tempo similarity (60–180 BPM range = 120 spread, worth up to 0.5 points)
+    # Tempo similarity — unchanged up to +0.5
     tempo_similarity = 1 - abs(song['tempo_bpm'] - prefs['target_tempo_bpm']) / 120
-    tempo_similarity = max(0, tempo_similarity)  # clamp to 0 minimum
-    score += tempo_similarity * 0.5
+    tempo_similarity = max(0, tempo_similarity)
+    tempo_points = round(tempo_similarity * 0.5, 2)
+    score += tempo_points
+    reasons.append(f"tempo similarity (+{tempo_points})")
 
-    return round(score, 4)
+    return round(score, 4), reasons
 
-# ----------------------------
-# 4. Ranking Rule (all songs)
-# ----------------------------
-songs['score'] = songs.apply(lambda row: score_song(row, user_preferences), axis=1)
-ranked = songs.sort_values('score', ascending=False).reset_index(drop=True)
 
 # ----------------------------
-# 5. Display recommendations
+# Rank all songs
 # ----------------------------
-print("\n🎵 User Preferences:")
-for k, v in user_preferences.items():
-    print(f"   {k}: {v}")
-
-print(f"\n   Max possible score: 5.0")
-print("\n🏆 Top 5 Recommended Songs:")
-print("-" * 60)
-top5 = ranked.head(5)[['title', 'artist', 'genre', 'mood', 'score']]
-for i, row in top5.iterrows():
-    print(f"{i+1}. {row['title']} - {row['artist']}")
-    print(f"   Genre: {row['genre']} | Mood: {row['mood']} | Score: {row['score']} / 5.0")
-print("-" * 60)
+def recommend(songs, prefs, top_k=5):
+    scored = []
+    for song in songs:
+        score, reasons = score_song(song, prefs)
+        song['score'] = score
+        song['reasons'] = reasons
+        scored.append(song)
+    ranked = sorted(scored, key=lambda x: x['score'], reverse=True)
+    return ranked[:top_k]
