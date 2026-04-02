@@ -1,34 +1,49 @@
-"""
-Command line runner for the Music Recommender Simulation.
+import os
+import sys
 
-This file helps you quickly run and test your recommender.
+# Make sure src/ can find recommender.py
+sys.path.insert(0, os.path.dirname(__file__))
 
-You will implement the functions in recommender.py:
-- load_songs
-- score_song
-- recommend_songs
-"""
+from recommender import load_songs, recommend
 
-from recommender import load_songs, recommend_songs
+# ----------------------------
+# File path to songs dataset
+# ----------------------------
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+SONGS_FILE = os.path.join(BASE_DIR, 'data', 'songs.csv')
 
+# ----------------------------
+# User preferences
+# ----------------------------
+user_preferences = {
+    'favorite_genre':      'Pop',
+    'favorite_mood':       'Energetic',
+    'target_energy':       0.8,
+    'target_tempo_bpm':    120,
+    'target_danceability': 0.75,
+    'target_acousticness': 0.15
+}
 
-def main() -> None:
-    songs = load_songs("data/songs.csv") 
+# ----------------------------
+# Main function
+# ----------------------------
+def main():
+    songs = load_songs(SONGS_FILE)
+    print(f"Loaded songs: {len(songs)}")
 
-    # Starter example profile
-    user_prefs = {"genre": "pop", "mood": "happy", "energy": 0.8}
+    recommendations = recommend(songs, user_preferences, top_k=5)
 
-    recommendations = recommend_songs(user_prefs, songs, k=5)
+    print(f"\n🎵 User Preferences:")
+    for k, v in user_preferences.items():
+        print(f"   {k}: {v}")
 
-    print("\nTop recommendations:\n")
-    for rec in recommendations:
-        # You decide the structure of each returned item.
-        # A common pattern is: (song, score, explanation)
-        song, score, explanation = rec
-        print(f"{song['title']} - Score: {score:.2f}")
-        print(f"Because: {explanation}")
-        print()
-
+    print(f"\n🏆 Top 5 Recommended Songs:")
+    print("-" * 60)
+    for i, song in enumerate(recommendations, 1):
+        print(f"{i}. {song['title']} - {song['artist']}")
+        print(f"   Genre: {song['genre']} | Mood: {song['mood']} | Score: {song['score']} / 5.0")
+        print(f"   Why: {' | '.join(song['reasons'])}")
+    print("-" * 60)
 
 if __name__ == "__main__":
     main()

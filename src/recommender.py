@@ -1,64 +1,72 @@
-from typing import List, Dict, Tuple, Optional
-from dataclasses import dataclass
+import csv
+import os
 
-@dataclass
-class Song:
-    """
-    Represents a song and its attributes.
-    Required by tests/test_recommender.py
-    """
-    id: int
-    title: str
-    artist: str
-    genre: str
-    mood: str
-    energy: float
-    tempo_bpm: float
-    valence: float
-    danceability: float
-    acousticness: float
+# ----------------------------
+# Load songs from CSV file
+# ----------------------------
+def load_songs(filepath):
+    songs = []
+    with open(filepath, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            songs.append({
+                'song_id':      int(row['song_id']),
+                'title':        row['title'],
+                'artist':       row['artist'],
+                'genre':        row['genre'],
+                'mood':         row['mood'],
+                'energy':       float(row['energy']),
+                'tempo_bpm':    int(row['tempo_bpm']),
+                'danceability': float(row['danceability']),
+                'acousticness': float(row['acousticness']),
+                'duration_sec': int(row['duration_sec'])
+            })
+    return songs
 
-@dataclass
-class UserProfile:
-    """
-    Represents a user's taste preferences.
-    Required by tests/test_recommender.py
-    """
-    favorite_genre: str
-    favorite_mood: str
-    target_energy: float
-    likes_acoustic: bool
 
-class Recommender:
-    """
-    OOP implementation of the recommendation logic.
-    Required by tests/test_recommender.py
-    """
-    def __init__(self, songs: List[Song]):
-        self.songs = songs
+# ----------------------------
+# Score a single song
+# Returns: (numeric_score, reasons_list)
+# ----------------------------
+def score_song(song, prefs):
+    score = 0.0
+    reasons = []
 
-    def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
-        # TODO: Implement recommendation logic
-        return self.songs[:k]
+    # Genre match (+2.0)
+    if song['genre'] == prefs['favorite_genre']:
+        score += 2.0
+        reasons.append(f"genre match (+2.0)")
 
-    def explain_recommendation(self, user: UserProfile, song: Song) -> str:
-        # TODO: Implement explanation logic
-        return "Explanation placeholder"
+    # Mood match (+1.5)
+    if song['mood'] == prefs['favorite_mood']:
+        score += 1.5
+        reasons.append(f"mood match (+1.5)")
 
-def load_songs(csv_path: str) -> List[Dict]:
-    """
-    Loads songs from a CSV file.
-    Required by src/main.py
-    """
-    # TODO: Implement CSV loading logic
-    print(f"Loading songs from {csv_path}...")
-    return []
+    # Energy similarity (up to +1.0)
+    energy_similarity = 1 - abs(song['energy'] - prefs['target_energy']) / 1.0
+    energy_points = round(energy_similarity * 1.0, 2)
+    score += energy_points
+    reasons.append(f"energy similarity (+{energy_points})")
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-    """
-    Functional implementation of the recommendation logic.
-    Required by src/main.py
-    """
-    # TODO: Implement scoring and ranking logic
-    # Expected return format: (song_dict, score, explanation)
-    return []
+    # Tempo similarity (up to +0.5)
+    tempo_similarity = 1 - abs(song['tempo_bpm'] - prefs['target_tempo_bpm']) / 120
+    tempo_similarity = max(0, tempo_similarity)
+    tempo_points = round(tempo_similarity * 0.5, 2)
+    score += tempo_points
+    reasons.append(f"tempo similarity (+{tempo_points})")
+
+    return round(score, 4), reasons
+
+
+# ----------------------------
+# Rank all songs
+# ----------------------------
+def recommend(songs, prefs, top_k=5):
+    scored = []
+    for song in songs:
+        score, reasons = score_song(song, prefs)
+        song['score'] = score
+        song['reasons'] = reasons
+        scored.append(song)
+    ranked = sorted(scored, key=lambda x: x['score'], reverse=True)
+    return ranked[:top_k]
