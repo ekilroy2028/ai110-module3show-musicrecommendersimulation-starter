@@ -14,3 +14,13 @@ song_id,title,artist,genre,mood,energy,tempo_bpm,danceability,acousticness,durat
 13,Numb,Linkin Park,Rock,Sad,0.75,174,0.35,0.1,187
 14,Peaches,Justin Bieber,Pop,Happy,0.65,90,0.8,0.3,198
 15,HUMBLE.,Kendrick Lamar,Hip-Hop,Intense,0.82,150,0.72,0.05,177
+16,Bohemian Like You,Dandy Warhols,Indie,Carefree,0.65,148,0.78,0.2,213
+17,Electric Feel,MGMT,Psychedelic,Euphoric,0.72,107,0.82,0.15,229
+18,Creep,Radiohead,Alternative,Melancholic,0.45,92,0.3,0.5,238
+19,La Bamba,Ritchie Valens,Latin,Joyful,0.78,178,0.88,0.6,124
+20,Superstition,Stevie Wonder,Funk,Groovy,0.85,100,0.9,0.1,245
+21,Moonlight Sonata,Beethoven,Classical,Somber,0.1,52,0.05,0.98,902
+22,Stressed Out,Twenty One Pilots,Indie Pop,Anxious,0.68,170,0.6,0.3,202
+23,Lazy Song,Bruno Mars,Reggae Pop,Chill,0.5,93,0.75,0.4,183
+24,Photograph,Ed Sheeran,Acoustic Pop,Nostalgic,0.35,108,0.45,0.9,258
+25,Mr. Brightside,The Killers,Indie Rock,Passionate,0.88,148,0.65,0.1,222
