@@ -58,3 +58,27 @@ python3 recommender.py
 - Python 3.x
 - pandas
 - scikit-learn
+
+## System Flowchart
+```mermaid
+flowchart TD
+    A([🎵 songs.csv\n25 songs]) --> C
+    B([👤 User Preferences\ngenre · mood · energy · tempo]) --> C
+    C[Load Data with pandas] --> D
+    D[/Pick next song from CSV/] --> E
+    E{Score the Song}
+    E --> F[Genre match?\n+2.0 pts]
+    E --> G[Mood match?\n+1.5 pts]
+    E --> H[Energy similarity\n× 1.0 pt]
+    E --> I[Tempo similarity\n× 0.5 pt]
+    F --> J[Add up total score\nmax = 5.0]
+    G --> J
+    H --> J
+    I --> J
+    J --> K{More songs\nto score?}
+    K -- Yes --> D
+    K -- No --> L
+    L[Sort all songs\nby score descending] --> M
+    M[/Return Top 5 Songs/] --> N
+    N([🏆 Ranked Recommendations\nTitle · Artist · Genre · Mood · Score])
+```
