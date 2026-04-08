@@ -1,5 +1,6 @@
 import os
 import sys
+from tabulate import tabulate
 
 # Make sure src/ can find recommender.py
 sys.path.insert(0, os.path.dirname(__file__))
@@ -81,52 +82,67 @@ profiles = {
 # ----------------------------
 # Main function
 # ----------------------------
-def main():
-    songs = load_songs(SONGS_FILE)
-    print(f"Loaded songs: {len(songs)}\n")
+def format_table(recommendations):
+    """Format recommendations as a readable table with reasons."""
+    rows = []
+    for i, song in enumerate(recommendations, 1):
+        rows.append([
+            i,
+            f"{song['title']} - {song['artist']}",
+            song['genre'],
+            song['mood'],
+            song['score'],
+            "\n".join(song['reasons'])
+        ])
+    headers = ["#", "Song & Artist", "Genre", "Mood", "Score", "Reasons"]
+    return tabulate(rows, headers=headers, tablefmt="fancy_grid")
 
-    # --- Run all profiles with genre-first + diversity ON ---
-    print("=" * 60)
-    print("📋 ALL PROFILES — Genre-First Mode + Diversity ON")
-    print("=" * 60)
+
+def main():
+    print(f"\n{'=' * 70}")
+    print(" 🎵  VibeFinder 1.0 — Music Recommender".center(70))
+    print(f"{'=' * 70}")
+
+    songs = load_songs(SONGS_FILE)
+    print(f"\n✅ Loaded {len(songs)} songs from dataset\n")
+
+    # --- All profiles with diversity ON ---
     for profile_name, prefs in profiles.items():
         songs = load_songs(SONGS_FILE)
         recommendations = recommend(songs, prefs, top_k=5, mode='genre-first', diversity=True)
-        print(f"\n👤 {profile_name}")
-        print(f"   Genre: {prefs['favorite_genre']} | Mood: {prefs['favorite_mood']} | Energy: {prefs['target_energy']}")
-        print("-" * 60)
-        for i, song in enumerate(recommendations, 1):
-            print(f"{i}. {song['title']} - {song['artist']}")
-            print(f"   Score: {song['score']} | Why: {' | '.join(song['reasons'])}")
-        print("=" * 60)
+
+        print(f"\n{'─' * 70}")
+        print(f" 👤  Profile: {profile_name}")
+        print(f"     Genre: {prefs['favorite_genre']} | Mood: {prefs['favorite_mood']} | Energy: {prefs['target_energy']} | Tempo: {prefs['target_tempo_bpm']} BPM")
+        print(f"{'─' * 70}")
+        print(format_table(recommendations))
 
     # --- Diversity ON vs OFF comparison ---
-    print("\n\n🔬 DIVERSITY COMPARISON — High-Energy Pop Profile")
-    print("=" * 60)
+    print(f"\n\n{'=' * 70}")
+    print(" 🔬  DIVERSITY COMPARISON — High-Energy Pop".center(70))
+    print(f"{'=' * 70}")
     test_prefs = profiles["🎵 High-Energy Pop"]
 
     for diversity_on in [False, True]:
         label = "✅ Diversity ON" if diversity_on else "❌ Diversity OFF"
         songs = load_songs(SONGS_FILE)
-        recommendations = recommend(songs, test_prefs, top_k=5, mode='genre-first', diversity=diversity_on)
+        recs = recommend(songs, test_prefs, top_k=5, mode='genre-first', diversity=diversity_on)
+        rows = [[i+1, f"{s['title']} - {s['artist']}", s['genre'], s['score']]
+                for i, s in enumerate(recs)]
         print(f"\n{label}")
-        print("-" * 60)
-        for i, song in enumerate(recommendations, 1):
-            print(f"{i}. {song['title']} - {song['artist']} ({song['genre']}) | Score: {song['score']}")
-        print("=" * 60)
+        print(tabulate(rows, headers=["#", "Song & Artist", "Genre", "Score"], tablefmt="fancy_grid"))
 
     # --- Mode comparison ---
-    print("\n\n🎛️  MODE COMPARISON — High-Energy Pop Profile")
-    print("=" * 60)
+    print(f"\n\n{'=' * 70}")
+    print(" 🎛️   MODE COMPARISON — High-Energy Pop".center(70))
+    print(f"{'=' * 70}")
     for mode in ['genre-first', 'mood-first', 'energy-focused', 'popularity-boost']:
         songs = load_songs(SONGS_FILE)
-        recommendations = recommend(songs, test_prefs, top_k=3, mode=mode, diversity=True)
+        recs = recommend(songs, test_prefs, top_k=3, mode=mode, diversity=True)
+        rows = [[i+1, f"{s['title']} - {s['artist']}", s['genre'], s['score'],
+                "\n".join(s['reasons'])] for i, s in enumerate(recs)]
         print(f"\n🎛️  Mode: {mode.upper()}")
-        print("-" * 60)
-        for i, song in enumerate(recommendations, 1):
-            print(f"{i}. {song['title']} - {song['artist']} | Score: {song['score']}")
-            print(f"   Why: {' | '.join(song['reasons'])}")
-        print("=" * 60)
+        print(tabulate(rows, headers=["#", "Song & Artist", "Genre", "Score", "Reasons"], tablefmt="fancy_grid"))
 
 if __name__ == "__main__":
     main()
