@@ -84,20 +84,47 @@ profiles = {
 def main():
     songs = load_songs(SONGS_FILE)
     print(f"Loaded songs: {len(songs)}\n")
+
+    # --- Run all profiles with genre-first + diversity ON ---
     print("=" * 60)
-
+    print("📋 ALL PROFILES — Genre-First Mode + Diversity ON")
+    print("=" * 60)
     for profile_name, prefs in profiles.items():
-        # Reload songs each time to reset scores
         songs = load_songs(SONGS_FILE)
-        recommendations = recommend(songs, prefs, top_k=5)
-
-        print(f"\n👤 Profile: {profile_name}")
-        print(f"   Genre: {prefs['favorite_genre']} | Mood: {prefs['favorite_mood']} | Energy: {prefs['target_energy']} | Tempo: {prefs['target_tempo_bpm']} BPM")
-        print(f"\n🏆 Top 5 Recommendations:")
+        recommendations = recommend(songs, prefs, top_k=5, mode='genre-first', diversity=True)
+        print(f"\n👤 {profile_name}")
+        print(f"   Genre: {prefs['favorite_genre']} | Mood: {prefs['favorite_mood']} | Energy: {prefs['target_energy']}")
         print("-" * 60)
         for i, song in enumerate(recommendations, 1):
             print(f"{i}. {song['title']} - {song['artist']}")
-            print(f"   Genre: {song['genre']} | Mood: {song['mood']} | Score: {song['score']} / 5.0")
+            print(f"   Score: {song['score']} | Why: {' | '.join(song['reasons'])}")
+        print("=" * 60)
+
+    # --- Diversity ON vs OFF comparison ---
+    print("\n\n🔬 DIVERSITY COMPARISON — High-Energy Pop Profile")
+    print("=" * 60)
+    test_prefs = profiles["🎵 High-Energy Pop"]
+
+    for diversity_on in [False, True]:
+        label = "✅ Diversity ON" if diversity_on else "❌ Diversity OFF"
+        songs = load_songs(SONGS_FILE)
+        recommendations = recommend(songs, test_prefs, top_k=5, mode='genre-first', diversity=diversity_on)
+        print(f"\n{label}")
+        print("-" * 60)
+        for i, song in enumerate(recommendations, 1):
+            print(f"{i}. {song['title']} - {song['artist']} ({song['genre']}) | Score: {song['score']}")
+        print("=" * 60)
+
+    # --- Mode comparison ---
+    print("\n\n🎛️  MODE COMPARISON — High-Energy Pop Profile")
+    print("=" * 60)
+    for mode in ['genre-first', 'mood-first', 'energy-focused', 'popularity-boost']:
+        songs = load_songs(SONGS_FILE)
+        recommendations = recommend(songs, test_prefs, top_k=3, mode=mode, diversity=True)
+        print(f"\n🎛️  Mode: {mode.upper()}")
+        print("-" * 60)
+        for i, song in enumerate(recommendations, 1):
+            print(f"{i}. {song['title']} - {song['artist']} | Score: {song['score']}")
             print(f"   Why: {' | '.join(song['reasons'])}")
         print("=" * 60)
 
