@@ -17,44 +17,64 @@ SONGS_FILE = os.path.join(BASE_DIR, 'data', 'songs.csv')
 # ----------------------------
 profiles = {
     "🎵 High-Energy Pop": {
-        'favorite_genre':      'Pop',
-        'favorite_mood':       'Energetic',
-        'target_energy':       0.8,
-        'target_tempo_bpm':    120,
-        'target_danceability': 0.75,
-        'target_acousticness': 0.15
+        'favorite_genre':         'Pop',
+        'favorite_mood':          'Energetic',
+        'target_energy':          0.8,
+        'target_tempo_bpm':       120,
+        'target_danceability':    0.75,
+        'target_acousticness':    0.15,
+        'target_detailed_mood':   'euphoric',
+        'target_decade':          '2020s',
+        'target_instrumentalness': 0.0,
+        'prefer_studio':          True
     },
     "😌 Chill Lofi": {
-        'favorite_genre':      'R&B',
-        'favorite_mood':       'Mellow',
-        'target_energy':       0.3,
-        'target_tempo_bpm':    80,
-        'target_danceability': 0.5,
-        'target_acousticness': 0.7
+        'favorite_genre':         'R&B',
+        'favorite_mood':          'Mellow',
+        'target_energy':          0.3,
+        'target_tempo_bpm':       80,
+        'target_danceability':    0.5,
+        'target_acousticness':    0.7,
+        'target_detailed_mood':   'romantic',
+        'target_decade':          '2010s',
+        'target_instrumentalness': 0.3,
+        'prefer_studio':          True
     },
     "🤘 Deep Intense Rock": {
-        'favorite_genre':      'Rock',
-        'favorite_mood':       'Intense',
-        'target_energy':       0.9,
-        'target_tempo_bpm':    160,
-        'target_danceability': 0.4,
-        'target_acousticness': 0.1
+        'favorite_genre':         'Rock',
+        'favorite_mood':          'Intense',
+        'target_energy':          0.9,
+        'target_tempo_bpm':       160,
+        'target_danceability':    0.4,
+        'target_acousticness':    0.1,
+        'target_detailed_mood':   'aggressive',
+        'target_decade':          '2000s',
+        'target_instrumentalness': 0.0,
+        'prefer_studio':          True
     },
     "⚡ Edge Case - High Energy but Sad": {
-        'favorite_genre':      'Pop',
-        'favorite_mood':       'Sad',
-        'target_energy':       0.9,
-        'target_tempo_bpm':    140,
-        'target_danceability': 0.6,
-        'target_acousticness': 0.2
+        'favorite_genre':         'Pop',
+        'favorite_mood':          'Sad',
+        'target_energy':          0.9,
+        'target_tempo_bpm':       140,
+        'target_danceability':    0.6,
+        'target_acousticness':    0.2,
+        'target_detailed_mood':   'heartbroken',
+        'target_decade':          '2010s',
+        'target_instrumentalness': 0.0,
+        'prefer_studio':          True
     },
     "🎹 Edge Case - Classical Intensity": {
-        'favorite_genre':      'Classical',
-        'favorite_mood':       'Dramatic',
-        'target_energy':       0.9,
-        'target_tempo_bpm':    160,
-        'target_danceability': 0.2,
-        'target_acousticness': 0.9
+        'favorite_genre':         'Classical',
+        'favorite_mood':          'Dramatic',
+        'target_energy':          0.9,
+        'target_tempo_bpm':       160,
+        'target_danceability':    0.2,
+        'target_acousticness':    0.9,
+        'target_detailed_mood':   'melancholic',
+        'target_decade':          '1800s',
+        'target_instrumentalness': 0.9,
+        'prefer_studio':          True
     }
 }
 

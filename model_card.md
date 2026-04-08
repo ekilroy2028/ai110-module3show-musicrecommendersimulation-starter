@@ -1,123 +1,101 @@
-# Model Card – Music Recommender Simulation
-
-## Model Overview
-A content-based music recommender system built in Python. It scores songs against a user preference profile using a weighted point system across genre, mood, energy, and tempo. The top 5 scored songs are returned as recommendations.
+# Model Card – VibeFinder 1.0
 
 ---
 
-## Intended Use
-- Educational simulation of how content-based filtering works
-- Demonstrating the tradeoffs between categorical and numerical feature matching
-- Exploring how weight adjustments affect recommendation diversity
+## 1. Model Name
+**VibeFinder 1.0**
+A simple content-based music recommender that matches songs to a listener's mood, genre, energy, and tempo preferences.
 
 ---
 
-## How It Works
-Each song is scored out of 5.0 points:
-| Feature | Points | Type |
-|---|---|---|
-| Genre match | +1.0–2.0 | Exact categorical match |
-| Mood match | +1.5 | Exact categorical match |
-| Energy similarity | up to +2.0 | Continuous numerical score |
-| Tempo similarity | up to +0.5 | Continuous numerical score |
+## 2. Goal / Task
+VibeFinder tries to predict which songs a user will enjoy based on their stated listening preferences. It does not learn from behavior — it scores every song in the catalog against a user profile and returns the top 5 best matches.
 
 ---
 
-## Limitations and Bias
-
-**1. Genre Dominance Creates a Filter Bubble**
-The genre feature carries the most weight in the scoring formula, which means users who prefer less-represented genres (like Classical or Latin) receive poor recommendations because so few songs in the dataset match their genre. During stress testing, the Classical profile's top recommendation was a Rock song simply because no Classical songs had matching energy scores.
-
-**2. Dataset Imbalance Favors Pop Users**
-Approximately 28% of the 25-song dataset is Pop music, meaning Pop users consistently receive higher-quality recommendations than users of underrepresented genres. A real-world system would require a much more balanced dataset or genre-normalized scoring to avoid this disparity.
-
-**3. Binary Mood Matching Ignores Emotional Proximity**
-Mood matching is all-or-nothing — a song labeled "Happy" earns zero mood points for a user who wants "Energetic," even though these moods are emotionally adjacent. A more sophisticated system would use a mood similarity matrix to award partial points for related moods.
-
-**4. No Listening History or Feedback Loop**
-The system relies entirely on stated user preferences with no ability to learn from actual listening behavior. Real recommenders improve over time by incorporating skips, replays, and playlist additions. This system will always recommend the same songs for the same profile with no personalization over time.
-
-**5. Linear Energy Penalty May Not Reflect Perception**
-The energy similarity formula applies an equal penalty across the entire 0.0–1.0 scale. However, the perceptual difference between energy 0.8 and 0.9 may feel much smaller to a listener than the difference between 0.1 and 0.2, suggesting a logarithmic or curved similarity function might be more accurate.
+## 3. Data Used
+- **Dataset size:** 25 songs
+- **Source:** Manually curated CSV file (`data/songs.csv`)
+- **Features per song:** song_id, title, artist, genre, mood, energy (0.0–1.0), tempo_bpm, danceability, acousticness, duration_sec
+- **Limits:** The dataset is small and unevenly distributed. Pop has 7 songs (28%) while genres like Classical and Latin have only 1 song each. This means Pop users get much better recommendations than users of less-represented genres.
 
 ---
 
-## Experiment Results
+## 4. Algorithm Summary
+Every song gets a score out of 5.0 points based on how well it matches the user's preferences:
 
-### Weight Shift Experiment
-Doubling energy weight (1.0 → 2.0) and halving genre weight (2.0 → 1.0) while keeping max score at 5.0 produced more cross-genre recommendations. The Deep Intense Rock profile surfaced Hip-Hop songs (Sicko Mode, Lose Yourself) ahead of some Rock songs because their energy scores were closer to the target. This suggests energy is a stronger "vibe" indicator than genre alone.
+- **+2.0 points** if the song's genre matches the user's favorite genre
+- **+1.5 points** if the song's mood matches the user's favorite mood
+- **Up to +1.0 points** based on how close the song's energy is to the user's target energy (the closer, the more points)
+- **Up to +0.5 points** based on how close the song's tempo is to the user's target tempo
 
-### Edge Case Findings
-- **High Energy but Sad:** Someone Like You (energy 0.3) ranked #1 for a user wanting energy 0.9, purely due to genre + mood points. This confirms genre dominance bias.
-- **Classical Intensity:** Bohemian Rhapsody ranked #1 over Moonlight Sonata for a Classical user because dramatic mood + high energy outweighed genre matching.
-
----
-
-## Recommendations for Improvement
-# Model Card – Music Recommender Simulation
-
-## Model Overview
-A content-based music recommender system built in Python. It scores songs against a user preference profile using a weighted point system across genre, mood, energy, and tempo. The top 5 scored songs are returned as recommendations.
+All 25 songs are scored, then sorted from highest to lowest. The top 5 are recommended. Think of it like a judge at a talent show scoring each performer — the highest scores win.
 
 ---
 
-## Intended Use
-- Educational simulation of how content-based filtering works
-- Demonstrating the tradeoffs between categorical and numerical feature matching
-- Exploring how weight adjustments affect recommendation diversity
+## 5. Observed Behavior / Biases
+
+**Genre dominance creates a filter bubble.**
+Because genre is worth +2.0 points, a Pop song with low energy will almost always beat a perfect-energy Rock song for a Pop user. The system can recommend songs that "feel wrong" because the genre label carries too much weight compared to how the song actually sounds.
+
+**Dataset imbalance hurts niche users.**
+Pop users have 7 songs to match against. Classical users have 1. During testing, the Classical Intensity profile recommended Bohemian Rhapsody (a Rock song) as its #1 result because there weren't enough Classical songs to compete.
+
+**Mood matching is all-or-nothing.**
+"Happy" and "Energetic" are emotionally similar but score zero overlap in this system. A user wanting "Energetic" gets no credit for a "Happy" song even if it would actually fit their vibe.
+
+**Conflicting preferences produce unexpected results.**
+A user profile with high energy (0.9) but sad mood got Someone Like You by Adele as the top recommendation — a very quiet, slow song — because genre and mood matched perfectly and outweighed the energy mismatch.
 
 ---
 
-## How It Works
-Each song is scored out of 5.0 points:
-| Feature | Points | Type |
-|---|---|---|
-| Genre match | +1.0–2.0 | Exact categorical match |
-| Mood match | +1.5 | Exact categorical match |
-| Energy similarity | up to +2.0 | Continuous numerical score |
-| Tempo similarity | up to +0.5 | Continuous numerical score |
+## 6. Evaluation Process
+Five user profiles were tested:
+
+| Profile | Purpose |
+|---|---|
+| High-Energy Pop | Baseline — standard pop listener |
+| Chill Lofi | Tests low energy and acoustic preferences |
+| Deep Intense Rock | Tests cross-genre mood matching |
+| High Energy but Sad | Edge case — conflicting preferences |
+| Classical Intensity | Edge case — underrepresented genre |
+
+One experiment was also run: the genre weight was halved (2.0 → 1.0) and energy weight was doubled (1.0 → 2.0) while keeping the max score at 5.0. This produced more cross-genre recommendations and surfaced Hip-Hop songs for the Rock profile because their energy scores were closer to the target.
 
 ---
 
-## Limitations and Bias
+## 7. Intended Use and Non-Intended Use
 
-**1. Genre Dominance Creates a Filter Bubble**
-The genre feature carries the most weight in the scoring formula, which means users who prefer less-represented genres (like Classical or Latin) receive poor recommendations because so few songs in the dataset match their genre. During stress testing, the Classical profile's top recommendation was a Rock song simply because no Classical songs had matching energy scores.
+**Intended use:**
+- Educational tool for learning how content-based filtering works
+- Demonstrating how weighted scoring affects recommendation diversity
+- A starting point for building more sophisticated recommenders
 
-**2. Dataset Imbalance Favors Pop Users**
-Approximately 28% of the 25-song dataset is Pop music, meaning Pop users consistently receive higher-quality recommendations than users of underrepresented genres. A real-world system would require a much more balanced dataset or genre-normalized scoring to avoid this disparity.
-
-**3. Binary Mood Matching Ignores Emotional Proximity**
-Mood matching is all-or-nothing — a song labeled "Happy" earns zero mood points for a user who wants "Energetic," even though these moods are emotionally adjacent. A more sophisticated system would use a mood similarity matrix to award partial points for related moods.
-
-**4. No Listening History or Feedback Loop**
-The system relies entirely on stated user preferences with no ability to learn from actual listening behavior. Real recommenders improve over time by incorporating skips, replays, and playlist additions. This system will always recommend the same songs for the same profile with no personalization over time.
-
-**5. Linear Energy Penalty May Not Reflect Perception**
-The energy similarity formula applies an equal penalty across the entire 0.0–1.0 scale. However, the perceptual difference between energy 0.8 and 0.9 may feel much smaller to a listener than the difference between 0.1 and 0.2, suggesting a logarithmic or curved similarity function might be more accurate.
+**Not intended for:**
+- Real-world music discovery (dataset is too small)
+- Replacing platforms like Spotify or YouTube Music
+- Making recommendations for users with complex or evolving tastes
+- Any commercial use
 
 ---
 
-## Experiment Results
-
-### Weight Shift Experiment
-Doubling energy weight (1.0 → 2.0) and halving genre weight (2.0 → 1.0) while keeping max score at 5.0 produced more cross-genre recommendations. The Deep Intense Rock profile surfaced Hip-Hop songs (Sicko Mode, Lose Yourself) ahead of some Rock songs because their energy scores were closer to the target. This suggests energy is a stronger "vibe" indicator than genre alone.
-
-### Edge Case Findings
-- **High Energy but Sad:** Someone Like You (energy 0.3) ranked #1 for a user wanting energy 0.9, purely due to genre + mood points. This confirms genre dominance bias.
-- **Classical Intensity:** Bohemian Rhapsody ranked #1 over Moonlight Sonata for a Classical user because dramatic mood + high energy outweighed genre matching.
+## 8. Ideas for Improvement
+1. **Balance the dataset** — Add more songs per genre so niche users get fair recommendations
+2. **Add a mood similarity matrix** — Award partial points for emotionally adjacent moods (e.g., "Happy" and "Energetic" should score 0.7 instead of 0.0)
+3. **Incorporate listening history** — Track skips and replays so the system learns and adapts over time instead of always giving the same results
 
 ---
 
-## Evaluation Summary
+## Personal Reflection
 
-Five profiles were tested: High-Energy Pop, Chill Lofi, Deep Intense Rock, High Energy but Sad, and Classical Intensity. The most surprising finding was that the High Energy but Sad edge case ranked Someone Like You (energy 0.3) as the top recommendation for a user targeting energy 0.9, purely because genre and mood together contributed 3.5 out of 5.0 points before energy was factored in. The Classical Intensity profile revealed a dataset imbalance problem — with only one Classical song available, the system defaulted to cross-genre recommendations. The Deep Intense Rock profile unexpectedly surfaced Hip-Hop songs ahead of Rock songs because mood matching (+1.5) compensated for the genre mismatch. Overall the system works well for Pop users but struggles with underrepresented genres.
+**What was your biggest learning moment?**
+The biggest surprise was discovering how much genre and mood dominate the scoring. I assumed energy would be the strongest "vibe" indicator — the difference between a workout song and a bedtime song is mostly about energy. But because genre and mood together are worth 3.5 out of 5.0 points, a slow quiet song in the right genre can easily beat a high-energy song in the wrong genre. That gap between what I expected and what actually happened taught me that the weights you choose are as important as the algorithm itself.
 
----
+**How did using AI tools help, and when did you need to double-check them?**
+AI tools helped me move fast — generating the dataset, scaffolding the code structure, and explaining concepts like `.sort()` vs `sorted()` in plain language. But I had to double-check the math every time weights changed to make sure the maximum score stayed at 5.0. AI is great at writing code quickly but doesn't always catch whether the logic makes real-world sense.
 
-## Recommendations for Improvement
-- Add more songs per genre to balance the dataset
-- Implement a mood similarity matrix for partial mood matching
-- Incorporate user feedback signals (likes, skips) for adaptive recommendations
-- Consider logarithmic energy scaling for more perceptually accurate similarity
-- Add a valence feature (happy/sad continuous scale) for richer emotional matching
+**What surprised you about how simple algorithms can still "feel" like recommendations?**
+Even with just four features and basic math, the system produced results that felt surprisingly reasonable. Levitating and Blinding Lights consistently topped the Pop/Energetic profile — which is exactly what you'd expect. It was striking that something so simple could produce results that feel intelligent, even though it's just addition and sorting under the hood.
+
+**What would you try next?**
+I would add a feedback loop — letting users thumbs up or thumbs down recommendations so the weights adjust automatically over time. I'd also add valence (a happy/sad continuous scale) as a fifth feature, since it's one of the most predictive features in real music recommenders like Spotify. Finally I'd expand the dataset to at least 100 songs with balanced genre representation.
